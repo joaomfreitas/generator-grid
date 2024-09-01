@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const payments: Payment[] = [];
 
-export const createPayment = (name: string, amount: number, grid: string[][], code: string): Payment => {
+export const createPayment = (name: string, amount: number, grid: string[][], code: string): Payment[] => {
     const newPayment: Payment = {
         id: uuidv4(),
         name,
@@ -13,7 +13,7 @@ export const createPayment = (name: string, amount: number, grid: string[][], co
     };
 
     payments.push(newPayment);
-    return newPayment;
+    return payments;
 };
 
 export const getPayments = (): Payment[] => payments;

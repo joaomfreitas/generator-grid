@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CodeDisplay from '../components/CodeDisplay';
+import { useGridContext } from '../contexts/GridContext';
 
 interface Payment {
     id: string;
@@ -10,6 +11,53 @@ interface Payment {
 }
 
 const PaymentsPage: React.FC = () => {
+
+    const { grid, code } = useGridContext();
+    const [payments, setPayments] = useState<Payment[]>([]);
+    const [paymentNAme, setPaymentName] = useState<string>('');
+    const [paymentAmount, setPaymentAmount] = useState<number>(0);
+
+    useEffect(() => {
+        fetchPayments()
+    }, [])
+
+    const fetchPayments = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/api/payments');
+            const data = await response.json();
+            setPayments(data);
+        } catch (error) {
+            console.log('Failed getting payments -> ', error);
+        }
+    }
+
+    const handleAddPayment = async () => {
+        const newPayment = {
+            name: paymentNAme,
+            amount: paymentAmount,
+            grid,
+            code
+        }
+        try {
+            const response = await fetch('http://localhost:3000/api/payments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newPayment),
+            });
+
+            if (response.ok) {
+                const updatedPayments = await response.json();
+                setPayments(updatedPayments);
+                setPaymentName('');
+                setPaymentAmount(0);
+            }
+        } catch (error) {
+            console.error('Failed adding payment -> ', error);
+        }
+    }
+
     return (
         <div className="flex flex-col items-center justify-center">
             <CodeDisplay code={''} />
@@ -20,6 +68,8 @@ const PaymentsPage: React.FC = () => {
                         type="text"
                         className="border border-gray-300 p-2 bg-white w-44"
                         placeholder="Payment"
+                        value={paymentNAme}
+                        onChange={(e) => setPaymentName(e.target.value)}
                     />
                 </div>
                 <div>
@@ -28,9 +78,12 @@ const PaymentsPage: React.FC = () => {
                         type="number"
                         className="border border-gray-300 p-2 bg-white w-44"
                         placeholder="Amount"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(Number(e.target.value))}
                     />
                 </div>
                 <button
+                    onClick={handleAddPayment}
                     className="px-4 h-12 bg-gray-500 text-white font-bold rounded hover:bg-gray-700 transition"
                 >
                     + ADD
@@ -50,29 +103,16 @@ const PaymentsPage: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white">
-                                <tr className="text-gray-700">
-                                    <td className="px-4 py-3 border">
-                                        <div className="flex items-center text-sm">
-                                            <p>Payment 1</p>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-ms font-semibold border">100</td>
-                                    <td className="px-4 py-3 text-ms font-semibold border">34</td>
-
-                                    <td className="px-4 py-3 text-ms font-semibold border">100</td>
-                                </tr>
-                                <tr className="text-gray-700">
-                                    <td className="px-4 py-3 border">
-                                        <div className="flex items-center text-sm">
-
-                                            <p>Payment 1</p>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-ms font-semibold border">100</td>
-                                    <td className="px-4 py-3 text-ms font-semibold border">34</td>
-
-                                    <td className="px-4 py-3 text-ms font-semibold border">100</td>
-                                </tr>
+                                {payments.map(payment => (
+                                    <tr key={payment.id} className="text-gray-700">
+                                        <td className="px-4 py-3 border">{payment.name}</td>
+                                        <td className="px-4 py-3 text-ms font-semibold border">{payment.amount}</td>
+                                        <td className="px-4 py-3 text-ms font-semibold border">{payment.code}</td>
+                                        <td className="px-4 py-3 text-ms font-semibold border">
+                                            100
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
