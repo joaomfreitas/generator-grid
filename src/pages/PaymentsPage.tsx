@@ -11,11 +11,20 @@ interface Payment {
 }
 
 const PaymentsPage: React.FC = () => {
-
-    const { grid, code } = useGridContext();
+    const { grid, code, socket } = useGridContext();
     const [payments, setPayments] = useState<Payment[]>([]);
-    const [paymentNAme, setPaymentName] = useState<string>('');
+    const [paymentName, setPaymentName] = useState<string>('');
     const [paymentAmount, setPaymentAmount] = useState<number>(0);
+
+    useEffect(() => {
+        socket.on('paymentUpdate', (updatedPayments: Payment[]) => {
+            setPayments(updatedPayments);
+        });
+
+        return () => {
+            socket.off('paymentUpdate');
+        };
+    }, [socket]);
 
     useEffect(() => {
         fetchPayments()
@@ -33,11 +42,12 @@ const PaymentsPage: React.FC = () => {
 
     const handleAddPayment = async () => {
         const newPayment = {
-            name: paymentNAme,
+            name: paymentName,
             amount: paymentAmount,
             grid,
-            code
-        }
+            code,
+        };
+
         try {
             const response = await fetch('http://localhost:3000/api/payments', {
                 method: 'POST',
@@ -50,17 +60,18 @@ const PaymentsPage: React.FC = () => {
             if (response.ok) {
                 const updatedPayments = await response.json();
                 setPayments(updatedPayments);
+                socket.emit('newPayment');
                 setPaymentName('');
                 setPaymentAmount(0);
             }
         } catch (error) {
             console.error('Failed adding payment -> ', error);
         }
-    }
+    };
 
     return (
         <div className="flex flex-col items-center justify-center">
-            <CodeDisplay code={''} />
+            <CodeDisplay />
             <div className='w-full flex flex-row items-end gap-4'>
                 <div>
                     <p className="text-gray-500">Payment</p>
@@ -68,7 +79,7 @@ const PaymentsPage: React.FC = () => {
                         type="text"
                         className="border border-gray-300 p-2 bg-white w-44"
                         placeholder="Payment"
-                        value={paymentNAme}
+                        value={paymentName}
                         onChange={(e) => setPaymentName(e.target.value)}
                     />
                 </div>
@@ -92,7 +103,7 @@ const PaymentsPage: React.FC = () => {
             <div className="container mx-auto mt-4">
                 Payments List
                 <div className="w-full mb-8 mt-2 overflow-hidden rounded-lg shadow-lg">
-                    <div className="w-full overflow-x-auto">
+                    <div className="w-full overflow-x-hidden">
                         <table className="w-full">
                             <thead className="text-xs font-semibold uppercase text-gray-400 bg-gray-50">
                                 <tr className="text-md text-left">
@@ -109,7 +120,11 @@ const PaymentsPage: React.FC = () => {
                                         <td className="px-4 py-3 text-ms font-semibold border">{payment.amount}</td>
                                         <td className="px-4 py-3 text-ms font-semibold border">{payment.code}</td>
                                         <td className="px-4 py-3 text-ms font-semibold border">
-                                            100
+                                            {payment.grid.map((row, rowIndex) => (
+                                                <div key={rowIndex}>
+                                                    {row.join(' ')}
+                                                </div>
+                                            ))}
                                         </td>
                                     </tr>
                                 ))}

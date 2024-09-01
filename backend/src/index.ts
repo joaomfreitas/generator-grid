@@ -3,6 +3,8 @@ import cors from 'cors';
 import paymentRoutes from '../routes/paymentRoutes';
 import http from 'http';
 import { Server } from 'socket.io';
+import { Payment } from '../models/payment';
+import { getPayments } from '../services/paymentService';
 
 const app = express();
 const port = 3000;
@@ -110,6 +112,10 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('connected ->', socket.id);
+
+    socket.on('newPayment', (updatedPayments: Payment[]) => {
+        io.emit('paymentUpdate', getPayments());
+    });
 
     socket.on('disconnect', () => {
         console.log('disconnected ->', socket.id);

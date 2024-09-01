@@ -1,8 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import io from 'socket.io-client';
-
-
-const socket = io('http://localhost:3000');
+import io, { Socket } from 'socket.io-client';
 
 interface GridContextProps {
     grid: string[][];
@@ -10,6 +7,7 @@ interface GridContextProps {
     biasChar: string;
     isGenerating: boolean;
     isWaiting: boolean;
+    socket: Socket | null;
     setGrid: React.Dispatch<React.SetStateAction<string[][]>>;
     setCode: React.Dispatch<React.SetStateAction<string>>;
     setBiasChar: React.Dispatch<React.SetStateAction<string>>;
@@ -32,7 +30,7 @@ export const GridProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const [isWaiting, setIsWaiting] = useState<boolean>(false);
     const [initialGrid, setInitialGrid] = useState<boolean>(false);
-
+    const [socket] = useState<Socket>(() => io('http://localhost:3000'));
 
     useEffect(() => {
         socket.on('gridUpdate', (data) => {
@@ -86,6 +84,7 @@ export const GridProvider: React.FC<{ children: React.ReactNode }> = ({ children
             biasChar,
             isGenerating,
             isWaiting,
+            socket,
             setGrid,
             setCode,
             setBiasChar,
