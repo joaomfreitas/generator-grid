@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 
 import cors from 'cors';
 
@@ -10,13 +10,32 @@ const corsOptions = {
     optionsSuccessStatus: 200
 };
 
+app.use(express.json());
 app.use(cors(corsOptions));
 
-const generateGrid = (empty = false): string[][] => {
-    return Array.from({ length: 10 }, () =>
-        Array.from({ length: 10 }, () => empty ? '' : getRandomChar())
+const generateGrid = (biasChar?: string, isEmpty = false): string[][] => {
+    const grid = Array.from({ length: 10 }, () =>
+        Array.from({ length: 10 }, () => isEmpty ? '' : getRandomChar())
     );
+
+    if (biasChar && biasChar !== '') {
+        const biasCount = 20; //número de vezes em que a letra pode ser colocada sendo que 100x0.2 = 20
+        let placedBias = 0;
+
+        while (placedBias < biasCount) {
+            const randomRow = Math.floor(Math.random() * 10);
+            const randomCol = Math.floor(Math.random() * 10);
+
+            if (grid[randomRow][randomCol] !== biasChar) {
+                grid[randomRow][randomCol] = biasChar;
+                placedBias++;
+            }
+        }
+    }
+
+    return grid;
 };
+
 
 const getRandomChar = (): string => {
     const alphabet = 'abcdefghijklmnopqrstuvwxyz';
@@ -54,12 +73,17 @@ const calculateCode = (grid: string[][]): string => {
 };
 
 app.get('/grid', (req, res) => {
-    const grid = generateGrid();
+    //testing biasChar
+    const biasChar = 'y';
+
+    const grid = generateGrid(biasChar);
     res.json({ grid });
 });
 
-app.get('/grid-code', (req, res) => {
-    const grid = generateGrid();
+app.post('/grid-code', (req: Request, res: Response) => {
+    const { biasChar } = req.body;
+
+    const grid = generateGrid(biasChar);
     const code = calculateCode(grid);
     res.json({ grid, code });
 });
