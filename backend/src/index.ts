@@ -1,9 +1,20 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import paymentRoutes from '../routes/paymentRoutes';
+import http from 'http';
+import { Server } from 'socket.io';
 
 const app = express();
 const port = 3000;
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:5173',
+        methods: ['GET', 'POST'],
+    },
+})
 
 const corsOptions = {
     origin: 'http://localhost:5173',
@@ -87,6 +98,9 @@ app.post('/grid-code', (req: Request, res: Response) => {
 
     const grid = generateGrid(biasChar);
     const code = calculateCode(grid);
+
+    io.emit('gridUpdate', { grid, code });
+
     res.json({ grid, code });
 });
 
@@ -94,6 +108,14 @@ app.get('/', (req, res) => {
     res.send('Hello, TypeScript with Express!');
 });
 
-app.listen(port, () => {
+io.on('connection', (socket) => {
+    console.log('connected ->', socket.id);
+
+    socket.on('disconnect', () => {
+        console.log('disconnected ->', socket.id);
+    })
+})
+
+server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });

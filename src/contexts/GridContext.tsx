@@ -1,4 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import io from 'socket.io-client';
+
+
+const socket = io('http://localhost:3000');
 
 interface GridContextProps {
     grid: string[][];
@@ -29,6 +33,17 @@ export const GridProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isWaiting, setIsWaiting] = useState<boolean>(false);
     const [initialGrid, setInitialGrid] = useState<boolean>(false);
 
+
+    useEffect(() => {
+        socket.on('gridUpdate', (data) => {
+            setGrid(data.grid);
+            setCode(data.code);
+        });
+
+        return () => {
+            socket.off('gridUpdate');
+        }
+    }, []);
 
     useEffect(() => {
         let interval: ReturnType<typeof setInterval> | null;
