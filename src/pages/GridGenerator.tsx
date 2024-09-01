@@ -1,56 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import CodeDisplay from './CodeDisplay';
-
-interface GridResponse {
-    grid: string[][];
-    code: string;
-}
-
-const generateEmptyGrid = (): string[][] => {
-    return Array.from({ length: 10 }, () =>
-        Array.from({ length: 10 }, () => '')
-    );
-};
-
+import React, { useEffect } from 'react';
+import { useGridContext } from '../contexts/GridContext';
+import CodeDisplay from '../components/CodeDisplay';
 
 const GridGenerator: React.FC = () => {
-    const [grid, setGrid] = useState<string[][]>(generateEmptyGrid());
-    const [code, setCode] = useState<string>('');
-    const [biasChar, setBiasChar] = useState<string>('');
-    const [isGenerating, setIsGenerating] = useState<boolean>(false);
-    const [isWaiting, setIsWaiting] = useState<boolean>(false);
-
-    useEffect(() => {
-        let interval: ReturnType<typeof setInterval> | null;
-
-        if (isGenerating) {
-            if (grid.length === 0) {
-                setGrid([]);
-            }
-            interval = setInterval(() => {
-                console.log('biasChar -> ', biasChar);
-                fetch('http://localhost:3000/grid-code', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ biasChar }),
-                })
-                    .then(response => response.json())
-                    .then((data: GridResponse) => {
-                        setGrid(data.grid);
-                        setCode(data.code);
-                    })
-                    .catch((err) => console.error(err));
-
-            }, 1000);
-        }
-
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [isGenerating, biasChar]);
-
+    const {
+        grid,
+        code,
+        biasChar,
+        isGenerating,
+        isWaiting,
+        setBiasChar,
+        setIsGenerating,
+        setIsWaiting,
+    } = useGridContext();
 
     const handleBiasChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value.toLowerCase();
@@ -65,6 +27,7 @@ const GridGenerator: React.FC = () => {
             }, 4000);
         }
     };
+
     const startGenerator = () => {
         setIsGenerating(true);
     };
@@ -85,7 +48,7 @@ const GridGenerator: React.FC = () => {
                             placeholder="Enter a character (a-z)"
                         />
                         {isWaiting && (
-                            <div className="text-red-500 ">Wait 4 seconds before changing the character</div>
+                            <div className="text-red-500">Wait 4 seconds before changing the character</div>
                         )}
                     </div>
                     <button
@@ -94,7 +57,6 @@ const GridGenerator: React.FC = () => {
                     >
                         GENERATE 2D GRID
                     </button>
-
                 </div>
                 <div className="grid grid-cols-10 gap-1 mb-8">
                     {grid.map((row, rowIndex) =>
@@ -109,7 +71,7 @@ const GridGenerator: React.FC = () => {
                     )}
                 </div>
             </div>
-            <CodeDisplay code={code} />
+            <CodeDisplay />
         </>
     );
 };

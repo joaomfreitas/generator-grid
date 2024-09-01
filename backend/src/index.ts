@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
-
 import cors from 'cors';
+import paymentRoutes from '../routes/paymentRoutes';
 
 const app = express();
 const port = 3000;
@@ -12,6 +12,8 @@ const corsOptions = {
 
 app.use(express.json());
 app.use(cors(corsOptions));
+
+app.use('/api', paymentRoutes);
 
 const generateGrid = (biasChar?: string, isEmpty = false): string[][] => {
     const grid = Array.from({ length: 10 }, () =>

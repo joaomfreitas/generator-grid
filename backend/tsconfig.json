@@ -20,7 +20,11 @@
         ]
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "models",
+        "routes",
+        "services",
+        "controllers"
     ],
     "exclude": [
         "node_modules"

@@ -1,8 +1,11 @@
 import React from "react";
+import { useGridContext } from '../contexts/GridContext';
 
 
 
-const CodeDisplay: React.FC<{ code: string | number }> = ({ code }) => {
+
+const CodeDisplay: React.FC = () => {
+    const { code } = useGridContext();
 
     return (
         <div className="flex justify-center">
