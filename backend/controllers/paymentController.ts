@@ -5,13 +5,13 @@ import {
 } from '../services/paymentService';
 
 export const createPaymentHandler = (req: Request, res: Response) => {
-    const { name, amount, grid, count } = req.body;
+    const { name, amount, grid, code } = req.body;
 
     if (!name || !amount || isNaN(amount)) {
         return res.status(400).json({ error: 'Invalid payment data' });
     }
 
-    const payment = createPayment(name, amount, grid, count);
+    const payment = createPayment(name, amount, grid, code);
     res.status(201).json(payment);
 };
 
