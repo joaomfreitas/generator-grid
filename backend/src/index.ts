@@ -24,6 +24,18 @@ const getRandomChar = (): string => {
     return alphabet[Math.floor(Math.random() * alphabet.length)];
 };
 
+const divideByInteger = (num: number): number => {
+    let numberValidated = num;
+    for (let i = 2; i <= num; i++) {
+        let result = num / i;
+        if (result <= 9) {
+            numberValidated = result;
+        }
+    }
+    return numberValidated;
+}
+
+
 const calculateCode = (grid: string[][]): string => {
     const now = new Date();
     const seconds = now.getSeconds();
@@ -35,8 +47,8 @@ const calculateCode = (grid: string[][]): string => {
     const countChar1 = grid.flat().filter(char => char === char1).length;
     const countChar2 = grid.flat().filter(char => char === char2).length;
 
-    const validatedCount1 = countChar1 > 9 ? Math.floor(countChar1 / 2) : countChar1;
-    const validatedCount2 = countChar2 > 9 ? Math.floor(countChar2 / 2) : countChar2;
+    const validatedCount1 = countChar1 > 9 ? divideByInteger(countChar1) : countChar1;
+    const validatedCount2 = countChar2 > 9 ? divideByInteger(countChar2) : countChar2;
 
     return `${validatedCount1}${validatedCount2}`;
 };
