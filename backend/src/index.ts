@@ -35,7 +35,7 @@ const generateGrid = (biasChar?: string, isEmpty = false): string[][] => {
 
     if (biasChar && biasChar !== '') {
         const biasCount = 20; //número de vezes em que a letra pode ser colocada sendo que 100x0.2 = 20
-        let placedBias = 0;
+        let placedBias = grid.map(row => row.filter(char => char === biasChar)).flat().length;
 
         while (placedBias < biasCount) {
             const randomRow = Math.floor(Math.random() * 10);
@@ -87,6 +87,11 @@ const calculateCode = (grid: string[][]): string => {
     return `${validatedCount1}${validatedCount2}`;
 };
 
+let grid: string[][] = generateGrid('', true);
+let code: string = '';
+let biasChar: string = '';
+let timeout: ReturnType<typeof setTimeout> | null = null;
+
 app.get('/grid', (req, res) => {
     //testing biasChar
     const biasChar = 'y';
@@ -96,19 +101,41 @@ app.get('/grid', (req, res) => {
 });
 
 app.post('/grid-code', (req: Request, res: Response) => {
-    const { biasChar } = req.body;
+    io.emit('gridOccupied', true);
+    if (timeout) {
+        clearTimeout(timeout);
+    }
+    timeout = setTimeout(() => {
+        io.emit('gridOccupied', false);
+    }, 3000)
 
-    const grid = generateGrid(biasChar);
-    const code = calculateCode(grid);
+    if (req.body.biasChar && biasChar !== req.body.biasChar && req.body.biasChar !== '') {
+        io.emit('waitingCharacter', biasChar);
+        biasChar = req.body.biasChar !== biasChar ? req.body.biasChar : biasChar || '';
+    }
 
-    io.emit('gridUpdate', { grid, code });
+    grid = generateGrid(biasChar);
+    code = calculateCode(grid);
 
-    res.json({ grid, code });
+    io.emit('gridUpdate', { grid, code, biasChar });
+
+    res.json({ grid, code, biasChar });
 });
+
+app.post('/bias-char', (req: Request, res: Response) => {
+    biasChar = req.body.biasChar;
+    io.emit('waitingCharacter', biasChar);
+    res.json({ biasChar });
+})
 
 app.get('/', (req, res) => {
     res.send('Hello, TypeScript with Express!');
 });
+
+
+app.get('/warmup', (req, res) => {
+    res.json({ grid, code });
+})
 
 io.on('connection', (socket) => {
     console.log('connected ->', socket.id);

@@ -5,7 +5,9 @@ import CodeDisplay from '../components/CodeDisplay';
 const GridGenerator: React.FC = () => {
     const {
         grid,
+        gridOccupied,
         code,
+        codeWaiting,
         biasChar,
         isGenerating,
         isWaiting,
@@ -43,19 +45,20 @@ const GridGenerator: React.FC = () => {
                             maxLength={1}
                             value={biasChar}
                             onChange={handleBiasChange}
-                            disabled={isWaiting}
+                            disabled={isWaiting || codeWaiting}
                             className="border border-gray-300 p-2 bg-white w-44"
                             placeholder="Enter a character (a-z)"
                         />
-                        {isWaiting && (
+                        {(isWaiting || codeWaiting) && (
                             <div className="text-red-500">Wait 4 seconds before changing the character</div>
                         )}
                     </div>
                     <button
                         onClick={startGenerator}
                         className="px-4 py-2 bg-gray-500 text-white font-bold rounded hover:bg-gray-700 transition"
+                        disabled={gridOccupied}
                     >
-                        GENERATE 2D GRID
+                        {gridOccupied ? 'GRID LIVE, BEING USED' : 'GENERATE 2D GRID'}
                     </button>
                 </div>
                 <div className="grid grid-cols-10 gap-1 mb-8">
